@@ -1,0 +1,53 @@
+name: Telegram Bot (Long-Running)
+
+# Runs bot.py continuously. GitHub kills any job after 6 hours, so this
+# workflow restarts itself ~10 min before that limit to stay "always on".
+# There will be a short (~1-2 min) gap in coverage during each restart.
+
+on:
+  workflow_dispatch:      # manual "Run workflow" button — start it once, it keeps itself alive after that
+
+concurrency:
+  group: telegram-bot-singleton
+  cancel-in-progress: false   # never kill an already-running bot — just skip new triggers
+
+jobs:
+  run-bot:
+    runs-on: ubuntu-latest
+    timeout-minutes: 350   # stop ourselves at 5h50m, well under GitHub's 6h hard limit
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
+
+      - name: Install Dependencies
+        run: pip install -r requirements.txt
+
+      - name: Re-trigger self before timeout
+        # Schedules a follow-up run ~10 min before this job's hard cutoff,
+        # so a fresh bot.py picks up right as this one is force-stopped.
+        run: |
+          nohup bash -c '
+            sleep 20400  # 5h40m
+            curl -s -X POST \
+              -H "Authorization: token ${{ secrets.BOT_GITHUB_PAT }}" \
+              -H "Accept: application/vnd.github.v3+json" \
+              https://api.github.com/repos/${{ github.repository }}/actions/workflows/run-bot.yml/dispatches \
+              -d "{\"ref\":\"${{ github.ref_name }}\"}"
+          ' > /dev/null 2>&1 &
+
+      - name: Run Bot
+        env:
+          API_ID: ${{ secrets.API_ID }}
+          API_HASH: ${{ secrets.API_HASH }}
+          BOT_TOKEN: ${{ secrets.BOT_TOKEN }}
+          REPO_NAME: mudassirsenpai-art/Tabla-translator-worker
+          WORKFLOW_FILE: manga.yml
+          WORKFLOW_REF: main
+          GITHUB_TOKEN: ${{ secrets.BOT_GITHUB_PAT }}
+          OWNER_IDS: ${{ secrets.OWNER_IDS }}
+        run: python bot.py

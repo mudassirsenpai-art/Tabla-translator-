@@ -340,7 +340,7 @@ def dispatch_github_workflow(job_id: str, file_id: str, chat_id: int, msg_id: in
         log.error("GITHUB_TOKEN not set — cannot dispatch workflow")
         return False
 
-    url = f"https://api.github.com/repos/{REPO_NAME}/actions/workflows/{WORKFLOW_FILE}/dispatches"
+    url = f"https://api.github.com/repos/mudassirsenpai-art/Tabla-translator-worker/actions/workflows/{WORKFLOW_FILE}/dispatches"
     headers = {
         "Accept": "application/vnd.github.v3+json",
         "Authorization": f"token {GITHUB_TOKEN}",

@@ -47,8 +47,9 @@ API_ID = int(os.getenv("API_ID", "0"))
 API_HASH = os.getenv("API_HASH", "").strip()
 BOT_TOKEN = os.getenv("BOT_TOKEN", "").strip()
 
-GITHUB_TOKEN = os.getenv("GITHUB_TOKEN", "").strip()
-REPO_NAME = os.getenv("REPO_NAME", "").strip()          # e.g. "youruser/yourrepo"
+# Yahan humne os.getenv me aapke exact GitHub Secrets ke naam daal diye hain
+GITHUB_TOKEN = os.getenv("BOT_GITHUB_PAT", "").strip()
+REPO_NAME = os.getenv("REPO_NAME", "mudassirsenpai-art/Tabla-translator-worker").strip()
 WORKFLOW_FILE = os.getenv("WORKFLOW_FILE", "manga.yml").strip()
 WORKFLOW_REF = os.getenv("WORKFLOW_REF", "main").strip()
 
@@ -377,7 +378,7 @@ def cancel_github_workflow_run(job_id: str) -> bool:
         "Authorization": f"token {GITHUB_TOKEN}",
     }
     try:
-        runs_url = f"https://api.github.com/repos/{REPO_NAME}/actions/workflows/{WORKFLOW_FILE}/runs?per_page=20"
+        runs_url = f"https://api.github.com/repos/mudassirsenpai-art/Tabla-translator-worker/actions/workflows/{WORKFLOW_FILE}/runs?per_page=20"
         res = requests.get(runs_url, headers=headers, timeout=15)
         if res.status_code != 200:
             return False
